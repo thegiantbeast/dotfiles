@@ -1,0 +1,28 @@
+layout {
+    cwd "~/Code"
+    pane split_direction="vertical" {
+        pane {
+            cwd "~/Code/Tequity/slotify/master"
+        }
+        pane split_direction="horizontal" {
+            pane name="games editor" {
+                cwd "~/Code/Tequity/tequity-game-clients/master/editor"
+                command "fish"
+                args "-C npm run start:dev -- --host"
+                start_suspended true
+            }
+            pane {
+                cwd "~/Code/Tequity/tequity-game-clients/master/game-clients"
+                command "fish"
+                args "-C npm run start:dev -- --host"
+                start_suspended true
+            }
+            pane {
+                cwd "~/Code/Tequity/tequity-game-clients/master"
+            }
+        }
+    }
+    pane size=2 borderless=true {
+        plugin location="status-bar"
+    }
+}

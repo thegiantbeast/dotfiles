@@ -1,0 +1,35 @@
+[user]
+	name = "Ricardo Ferreira"
+	email = me+github@ricardoferreira.eu
+
+[core]
+	ignorecase = false
+
+[commit]
+	gpgsign = true
+
+[push]
+	autoSetupRemote = true
+
+[includeIf "gitdir:~/Code/Tequity/**"]
+    path = ~/.config/git/config-work
+
+[format]
+	pretty = oneline
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+
+[help]
+	autocorrect = 1
+
+[alias]
+    clean-squashed = "!git branch --format '%(refname:short) %(upstream:track)' | awk '$2 == \"[gone]\" { print $1 }' | xargs -r git branch -D"
+    wls = "wlist"
+    wlist = "worktree list"
+    wadd = "!f() { set -e; if [ -d .bare ]; then wrap=\"$PWD\"; bare=\"$PWD/.bare\"; else bare=$(git rev-parse --git-common-dir 2>/dev/null) || { echo 'Not inside a worktree' >&2; exit 2; }; wrap=$(dirname \"$bare\"); fi; if [ \"$1\" = \"-b\" ]; then shift; b=\"$1\"; [ -n \"$b\" ] || exit 1; shift || true; dest=\"$1\"; [ -n \"$dest\" ] || dest=\"$b\"; shift || true; git --git-dir=\"$bare\" worktree add -b \"$b\" \"$wrap/$dest\" \"$@\"; exit $?; fi; branch=\"$1\"; [ -n \"$branch\" ] || exit 1; dest=\"$2\"; [ -n \"$dest\" ] || dest=\"$branch\"; if git --git-dir=\"$bare\" show-ref --verify --quiet \"refs/heads/$branch\"; then git --git-dir=\"$bare\" worktree add \"$wrap/$dest\" \"$branch\"; elif git --git-dir=\"$bare\" show-ref --verify --quiet \"refs/remotes/origin/$branch\"; then git --git-dir=\"$bare\" worktree add -b \"$branch\" \"$wrap/$dest\" \"origin/$branch\"; else echo \"Branch '$branch' not found; use -b to create it\" >&2; exit 1; fi; }; f \"$@\" #"
+    wrm = "!f() { name=\"$1\"; [ -n \"$name\" ] || exit 1; if [ -d .bare ]; then wrap=\"$PWD\"; bare=\"$PWD/.bare\"; else bare=$(git rev-parse --git-common-dir 2>/dev/null) || { echo 'Not inside a worktree' >&2; exit 2; }; wrap=$(dirname \"$bare\"); fi; git --git-dir=\"$bare\" worktree remove \"$wrap/$name\" && git --git-dir=\"$bare\" branch -D \"$name\"; }; f \"$@\" #"
+    bclone = "!f() { repo=\"$1\"; name=\"$2\"; if [ -z \"$repo\" ]; then exit 2; fi; if [ -z \"$name\" ]; then r=\"$repo\"; r=\"${r##*/}\"; r=\"${r##*:}\"; r=\"${r%.git}\"; name=\"$r\"; fi; if [ -z \"$name\" ]; then echo 'Could not determine repo name' >&2; exit 1; fi; if [ -e \"$name\" ]; then echo \"Destination '$name' already exists\" >&2; exit 1; fi; mkdir -p \"$name\"; git clone --bare \"$repo\" \"$name/.bare\"; git --git-dir=\"$name/.bare\" config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"; git --git-dir=\"$name/.bare\" fetch origin; def=$(git --git-dir=\"$name/.bare\" symbolic-ref --quiet --short HEAD || echo main); git --git-dir=\"$name/.bare\" worktree add \"$name/$def\" \"$def\"; git -C \"$name/$def\" config branch.\"$def\".remote origin; git -C \"$name/$def\" config branch.\"$def\".merge refs/heads/\"$def\"; }; f \"$@\" #"
