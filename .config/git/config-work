@@ -1,0 +1,12 @@
+[user]
+	name = "Ricardo Ferreira"
+	email = "r@tequity.ventures"
+
+[remote "origin"]
+	fetch = +refs/heads/*:refs/remotes/origin/*
+
+[alias]
+	wls = "wlist"
+	wlist = "worktree list"
+	wadd = "!git worktree add -b \"$1\" ~/Code/Tequity/$(pwd | sed \"s|^$HOME/Code/Tequity/||\")/../$1 #"
+	wrm = "!git worktree remove $1 && git branch -D $1 #"

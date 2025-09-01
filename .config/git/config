@@ -1,0 +1,30 @@
+[user]
+	name = "Ricardo Ferreira"
+	email = me+github@ricardoferreira.eu
+
+[core]
+	ignorecase = false
+
+[commit]
+	gpgsign = true
+
+[push]
+	autoSetupRemote = true
+
+[includeIf "gitdir:~/Code/Tequity/**"]
+	path = ~/.config/git/config-work
+
+[format]
+	pretty = oneline
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+
+[help]
+	autocorrect = 1
+
+[alias]
+	clean-squashed = "!git branch --format '%(refname:short) %(upstream:track)' | awk '$2 == \"[gone]\" { print $1 }' | xargs -r git branch -D"

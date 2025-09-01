@@ -1,0 +1,11 @@
+^\.git$
+^\.github$
+^scripts$
+^setup\.sh$
+^strap\.sh$
+^\.macos$
+^\.stow-local-ignore$
+^\.stowrc$
+^README(\.md)?$
+^LICENSE$
+^Brewfile$

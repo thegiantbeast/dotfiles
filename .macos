@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Minimal, modern macOS defaults
+
+log() { printf -- "--> %s\n" "$*"; }
+
+macos_major() {
+  sw_vers -productVersion | awk -F. '{print $1}'
+}
+
+MAJOR="$(macos_major)"
+log "Detected macOS major version: ${MAJOR}"
+
+# Dark mode
+defaults write NSGlobalDomain AppleInterfaceStyle -string "Dark"
+
+# Save to disk by default, instead of iCloud
+defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
+
+# Finder
+log "Configuring Finder preferences"
+defaults write com.apple.finder AppleShowAllFiles -bool true
+defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+defaults write NSGlobalDomain AppleWindowTabbingMode -string "always"
+defaults write com.apple.finder ShowPathbar -bool true
+defaults write com.apple.finder ShowStatusBar -bool true
+defaults write com.apple.finder _FXSortFoldersFirst -bool true
+defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"   # Search current folder by default
+defaults write com.apple.finder FXEnableExtensionsChangeWarning -bool false
+chflags nohidden "$HOME/Library" 2>/dev/null || true
+
+# Dock
+log "Configuring Dock"
+defaults write com.apple.dock autohide -bool true
+defaults write com.apple.dock mineffect -string "genie"
+defaults write com.apple.dock minimize-to-application -bool true
+defaults write com.apple.dock persistent-apps -array
+defaults write com.apple.dock expose-group-by-app -bool true
+defaults write com.apple.dashboard mcx-disabled -bool true
+defaults write com.apple.dock dashboard-in-overlay -bool true
+defaults write com.apple.dock mru-spaces -bool false
+defaults write com.apple.dock autohide-delay -float 0
+defaults write com.apple.dock show-recents -bool false
+defaults write com.apple.dock tilesize -int 64
+
+# Keyboard
+log "Configuring keyboard and input"
+defaults write NSGlobalDomain KeyRepeat -int 2
+defaults write NSGlobalDomain InitialKeyRepeat -int 15
+defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
+defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false
+defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
+defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
+defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
+defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
+defaults write NSGlobalDomain AppleKeyboardUIMode -int 3 # keyboard navigation between control elements
+
+# Trackpad: tap to click
+defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true 2>/dev/null || true
+defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true 2>/dev/null || true
+
+# Screenshots
+log "Configuring screenshots"
+SCREENSHOT_DIR="$HOME/Desktop/Screenshots"
+mkdir -p "$SCREENSHOT_DIR"
+defaults write com.apple.screencapture location -string "$SCREENSHOT_DIR"
+defaults write com.apple.screencapture type -string "png"
+defaults write com.apple.screencapture disable-shadow -bool true
+
+# Desktop services: avoid .DS_Store on network/USB
+defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
+defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
+
+# Spotlight
+log "Disabling Spotlight"
+sudo mdutil -a -i off || true
+defaults write com.apple.controlcenter "NSStatusItem Visible Spotlight" -bool false
+/usr/libexec/PlistBuddy -c "Set :AppleSymbolicHotKeys:64:enabled false" "$HOME/Library/Preferences/com.apple.symbolichotkeys.plist" || true
+/usr/libexec/PlistBuddy -c "Set :AppleSymbolicHotKeys:65:enabled false" "$HOME/Library/Preferences/com.apple.symbolichotkeys.plist" || true
+
+# Display sleep timers
+log "Configuring power management (display sleep)"
+# 5 minutes on battery, 10 minutes when plugged in
+sudo pmset -b displaysleep 5 || true
+sudo pmset -c displaysleep 10 || true
+
+# Apply changes
+log "Restarting affected services"
+killall Finder 2>/dev/null || true
+killall Dock 2>/dev/null || true
+killall SystemUIServer 2>/dev/null || true
+killall cfprefsd 2>/dev/null || true
+
+log "Done. Some changes may require logout/restart to fully apply."
