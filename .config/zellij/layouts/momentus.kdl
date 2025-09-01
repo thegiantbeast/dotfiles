@@ -1,0 +1,14 @@
+layout {
+    cwd "~/Code"
+    pane split_direction="vertical" {
+        pane {
+            cwd "~/Code/Momentus/api"
+        }
+        pane {
+            cwd "~/Code/Momentus/site"
+        }
+    }
+    pane size=2 borderless=true {
+        plugin location="status-bar"
+    }
+}
