@@ -27,6 +27,21 @@ GPG_TTY=$(tty)
 SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
 gpgconf --launch gpg-agent
 
+echo "--> Syncing GPG public keys from YubiKey"
+if gpg --quiet --card-status >/dev/null 2>&1; then
+  printf 'fetch\nquit\n' | gpg --quiet --batch --yes --command-fd 0 --status-fd 1 --edit-card >/dev/null 2>&1
+
+  mapfile -t yubikey_pubkeys < <(gpg --list-keys --with-colons | awk -F: '$1 == "pub" { print $5 }' | sort -u)
+  for key in "${yubikey_pubkeys[@]}"; do
+    echo "    -> Downloading ${key} from keys.openpgp.org"
+    gpg --quiet --keyserver hkps://keys.openpgp.org --recv-keys "${key}" >/dev/null 2>&1 || {
+      echo "       ! Failed to download ${key}; please import manually."
+    }
+  done
+else
+  echo "--> No YubiKey detected; skipping GPG key fetch."
+fi
+
 echo "--> Exporting SSH public keys from agent"
 ssh-add -L | awk '/^ecdsa-sha2-/{print}' > "${HOME}/.ssh/id_ecdsa.pub"
 chmod 644 "${HOME}/.ssh/id_ecdsa.pub"
