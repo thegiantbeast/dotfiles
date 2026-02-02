@@ -1,0 +1,5 @@
+macos-option-as-alt = true
+keybind = alt+left=unbind
+keybind = alt+right=unbind
+keybind = shift+enter=text:\x1b\r
+
