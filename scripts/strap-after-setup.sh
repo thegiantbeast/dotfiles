@@ -59,3 +59,6 @@ if [[ -n "${STRAP_GITHUB_USER:-}" ]]; then
   git reset --mixed origin/main
   git branch --set-upstream-to=origin/main main
 fi
+
+# Enable USB LAN adapter drivers
+sudo kextload -b com.apple.driver.usb.realtek8153patcher

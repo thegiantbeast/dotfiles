@@ -41,7 +41,7 @@ brew "lazygit"
 # === Dev & Languages ===
 brew "go"
 brew "rust"
-brew "nvm"
+brew "fnm"
 brew "tenv"
 
 # === Cloud & Containers ===
