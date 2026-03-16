@@ -41,8 +41,10 @@ brew "lazygit"
 # === Dev & Languages ===
 brew "go"
 brew "rust"
+brew "cloudflared"
 brew "fnm"
-brew "tenv"
+brew "terraform"
+brew "tree"
 
 # === Cloud & Containers ===
 brew "awscli"
@@ -69,7 +71,9 @@ brew "gnupg"
 # === Casks ===
 # -- Browsers --
 cask "arc"
+cask "brave-browser"
 cask "chromium"
+cask "helium-browser"
 cask "firefox"
 cask "firefox@developer-edition"
 cask "google-chrome"
@@ -79,6 +83,7 @@ cask "safari-technology-preview"
 
 # -- Development --
 #cask "android-studio"
+cask "claude-code"
 cask "dbeaver-community"
 cask "ghostty"
 cask "github"
@@ -97,13 +102,13 @@ cask "obsidian"
 cask "onlyoffice"
 cask "pdf-expert"
 cask "raycast"
+cask "microsoft-teams"
 cask "slack"
 cask "telegram"
 cask "zoom"
 
 # -- Design & Media --
 cask "blender"
-cask "figma"
 cask "loom"
 cask "spotify"
 cask "vlc"
@@ -113,8 +118,9 @@ cask "steam"
 
 # -- Utilities --
 cask "alt-tab"
-cask "background-music"
+cask "blackhole-2ch"
 cask "calibre"
+cask "creality-print"
 cask "displaylink"
 cask "glance-chamburr"
 cask "keycastr"
@@ -123,6 +129,8 @@ cask "xquartz"
 
 # -- Cloud & Networking --
 cask "expressvpn"
+cask "private-internet-access"
+cask "tailscale-app"
 cask "wireshark-app"
 
 # -- Fonts --
@@ -152,15 +160,16 @@ mas "Windows App", id: 1295203466
 mas "Xcode", id: 497799835
 
 # === VS Code Extensions ===
+vscode "anthropic.claude-code"
 vscode "4ops.terraform"
+vscode "chaitanyashahare.lazygit"
 vscode "dakshmiglani.hex-to-rgba"
 vscode "dbaeumer.vscode-eslint"
 vscode "docker.docker"
 vscode "eamodio.gitlens"
 vscode "esbenp.prettier-vscode"
-vscode "github.copilot"
-vscode "github.copilot-chat"
 vscode "github.vscode-github-actions"
+vscode "github.vscode-pull-request-github"
 vscode "hashicorp.terraform"
 vscode "kdl-org.kdl"
 vscode "killalau.vscode-liquid-snippets"
@@ -173,6 +182,7 @@ vscode "ms-python.vscode-pylance"
 vscode "ms-python.vscode-python-envs"
 vscode "ms-vscode-remote.remote-containers"
 vscode "ms-vscode.cmake-tools"
+vscode "ms-vscode.cpp-devtools"
 vscode "ms-vscode.cpptools"
 vscode "ms-vscode.cpptools-extension-pack"
 vscode "ms-vscode.cpptools-themes"
@@ -186,5 +196,6 @@ vscode "simonsiefke.svg-preview"
 vscode "sissel.shopify-liquid"
 vscode "tomoki1207.pdf"
 vscode "twxs.cmake"
+vscode "mechatroner.rainbow-csv"
 vscode "vitest.explorer"
 vscode "vscodevim.vim"
