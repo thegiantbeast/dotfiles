@@ -2,7 +2,7 @@
 To be used with a companion fish function like this:
 
         function refish
-            set -l _x (python /tmp/bass.py source ~/.nvm/nvim.sh ';' nvm use iojs); source $_x; and rm -f $_x
+            set -l _x (python /tmp/bass.py source /some/bash/script.sh); source $_x; and rm -f $_x
         end
 
 """

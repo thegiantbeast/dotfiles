@@ -1,7 +1,22 @@
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc'; fi
+# === Homebrew ===
+eval "$(/opt/homebrew/bin/brew shellenv)"
+export HOMEBREW_BUNDLE_NO_LOCK=true
+export PATH="/opt/homebrew/opt/grep/libexec/gnubin:$PATH"
 
-# The next line enables shell command completion for gcloud.
+# === Editor ===
+export EDITOR=vi
+
+# === GPG / SSH ===
+export GPG_TTY=$(tty)
+export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
+gpgconf --launch gpg-agent
+
+# === Node (fnm) ===
+eval "$(/opt/homebrew/bin/fnm env --use-on-cd --shell zsh)"
+
+# === Google Cloud SDK ===
+if [ -f '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc'; fi
 if [ -f '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc'; fi
 
-eval "$(/opt/homebrew/bin/fnm env --use-on-cd --shell zsh)"
+# === OrbStack ===
+source ~/.orbstack/shell/init.zsh 2>/dev/null || :

@@ -9,3 +9,6 @@
 ^README(\.md)?$
 ^LICENSE$
 ^Brewfile$
+.*\.swp$
+.*\.swo$
+.*~$
