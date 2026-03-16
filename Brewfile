@@ -49,7 +49,6 @@ brew "tree"
 # === Cloud & Containers ===
 brew "awscli"
 brew "cloud-sql-proxy"
-brew "docker"
 brew "k6"
 brew "k9s"
 brew "qemu"
