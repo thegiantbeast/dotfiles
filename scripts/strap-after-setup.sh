@@ -38,6 +38,16 @@ if gpg --quiet --card-status >/dev/null 2>&1; then
       echo "       ! Failed to download ${key}; please import manually."
     }
   done
+
+  echo "--> Setting GPG key trust to ultimate (required for git-crypt)"
+  for key in "${yubikey_pubkeys[@]}"; do
+    gpg --batch --no-tty --command-fd 0 --expert --edit-key "${key}" <<'TRUST'
+trust
+5
+y
+quit
+TRUST
+  done
 else
   echo "--> No YubiKey detected; skipping GPG key fetch."
 fi
@@ -58,6 +68,36 @@ if [[ -n "${STRAP_GITHUB_USER:-}" ]]; then
   git checkout -B main
   git reset --mixed origin/main
   git branch --set-upstream-to=origin/main main
+fi
+
+echo "--> Decrypting git-crypt files in dotfiles"
+cd "${DOTFILES_DIR}"
+if command -v git-crypt &>/dev/null; then
+  git-crypt unlock
+  echo "--> Re-stowing dotfiles after git-crypt unlock"
+  stow .
+else
+  echo "    ! git-crypt not found; encrypted files will remain locked."
+fi
+
+echo "--> Initializing RTK (token-saving CLI proxy for AI coding agents)"
+if command -v rtk &>/dev/null; then
+  # RTK on macOS reads from ~/Library/Application Support/rtk/ — symlink to ~/.config/rtk/
+  mkdir -p "${HOME}/Library/Application Support/rtk"
+  ln -sf "${HOME}/.config/rtk/config.toml" "${HOME}/Library/Application Support/rtk/config.toml"
+  rtk init --global --auto-patch
+  rtk init --global --codex
+else
+  echo "    ! rtk not found; skipping RTK init."
+fi
+
+echo "--> Initializing ICM (persistent memory for AI coding agents)"
+if command -v icm &>/dev/null; then
+  # ICM on macOS reads from ~/Library/Application Support/dev.icm.icm/ — symlink entire dir to ~/.config/icm/
+  ln -sfn "${HOME}/.config/icm" "${HOME}/Library/Application Support/dev.icm.icm"
+  icm init --mode hook
+else
+  echo "    ! icm not found; skipping ICM init."
 fi
 
 # Enable USB LAN adapter drivers

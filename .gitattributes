@@ -1,0 +1,2 @@
+# Encrypt sensitive data files
+.config/icm/memories.db filter=git-crypt diff=git-crypt
