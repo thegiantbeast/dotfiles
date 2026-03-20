@@ -67,6 +67,7 @@ brew "ffmpeg"
 brew "imagemagick"
 
 # === Security & Certificates ===
+brew "1password-cli"
 brew "certbot"
 brew "gnupg"
 
