@@ -20,3 +20,9 @@ if [ -f '/opt/homebrew/share/google-cloud-sdk/completion.bash.inc' ]; then . '/o
 
 # === OrbStack ===
 source ~/.orbstack/shell/init.bash 2>/dev/null || :
+
+# === AI agents — sandboxed via nono ===
+alias claude='nono run --profile ai --allow-cwd -- claude'
+alias codex='nono run --profile ai --allow-cwd -- codex'
+alias claude-raw='command claude'
+alias codex-raw='command codex'
