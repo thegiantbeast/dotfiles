@@ -22,7 +22,7 @@ if [ -f '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc' ]; then . '/op
 source ~/.orbstack/shell/init.zsh 2>/dev/null || :
 
 # === AI agents — sandboxed via nono ===
-alias claude='nono run --profile ai --allow-cwd -- claude'
-alias codex='nono run --profile ai --allow-cwd -- codex'
+alias claude='nono run --profile ai --trust-override --allow-cwd -- claude'
+alias codex='nono run --profile ai --trust-override --allow-cwd -- codex'
 alias claude-raw='command claude'
 alias codex-raw='command codex'

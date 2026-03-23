@@ -6,8 +6,8 @@ alias zellij-config="code ~/.config/zellij"
 alias dotfiles="code ~/.dotfiles"
 
 # AI agents — sandboxed via nono by default
-alias claude="SHELL=/opt/homebrew/bin/bash nono run --profile ai --allow-cwd -- claude"
-alias codex="nono run --profile ai --allow-cwd -- codex"
+alias claude="SHELL=/opt/homebrew/bin/bash nono run --profile ai --trust-override --allow-cwd -- claude"
+alias codex="nono run --profile ai --trust-override --allow-cwd -- codex"
 
 # Raw (unsandboxed) access when needed
 alias claude-raw="SHELL=/opt/homebrew/bin/bash command claude"
