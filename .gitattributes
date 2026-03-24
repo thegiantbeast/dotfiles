@@ -6,3 +6,5 @@
 .claude/RTK.md filter=git-crypt diff=git-crypt
 .claude/settings.json filter=git-crypt diff=git-crypt
 .claude/research/*.md filter=git-crypt diff=git-crypt
+.claude/hooks/*.sh filter=git-crypt diff=git-crypt
+.claude/hooks/.rtk-hook.sha256 filter=git-crypt diff=git-crypt

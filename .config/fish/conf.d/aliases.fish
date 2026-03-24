@@ -5,10 +5,7 @@ alias git-config="code ~/.config/git"
 alias zellij-config="code ~/.config/zellij"
 alias dotfiles="code ~/.dotfiles"
 
-# AI agents — sandboxed via nono by default
-alias claude="SHELL=/opt/homebrew/bin/bash nono run --profile ai --trust-override --allow-cwd -- claude"
-alias codex="nono run --profile ai --trust-override --allow-cwd -- codex"
-
+# AI agents — sandboxed via nono (functions in functions/claude.fish, functions/codex.fish)
 # Raw (unsandboxed) access when needed
 alias claude-raw="SHELL=/opt/homebrew/bin/bash command claude"
 alias codex-raw="command codex"

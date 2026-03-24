@@ -22,7 +22,23 @@ if [ -f '/opt/homebrew/share/google-cloud-sdk/completion.bash.inc' ]; then . '/o
 source ~/.orbstack/shell/init.bash 2>/dev/null || :
 
 # === AI agents — sandboxed via nono ===
-alias claude='nono run --profile ai --trust-override --allow-cwd -- claude'
-alias codex='nono run --profile ai --trust-override --allow-cwd -- codex'
+claude() {
+  local nono_args=(--profile ai --trust-override --allow-cwd -s)
+  local git_common
+  git_common=$(git rev-parse --git-common-dir 2>/dev/null)
+  if [[ -n "$git_common" && "$git_common" != ".git" ]]; then
+    nono_args+=(--allow "$(realpath "$git_common")")
+  fi
+  nono run "${nono_args[@]}" -- claude "$@"
+}
+codex() {
+  local nono_args=(--profile ai --trust-override --allow-cwd -s)
+  local git_common
+  git_common=$(git rev-parse --git-common-dir 2>/dev/null)
+  if [[ -n "$git_common" && "$git_common" != ".git" ]]; then
+    nono_args+=(--allow "$(realpath "$git_common")")
+  fi
+  nono run "${nono_args[@]}" -- codex "$@"
+}
 alias claude-raw='command claude'
 alias codex-raw='command codex'
