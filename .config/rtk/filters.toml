@@ -1,0 +1,99 @@
+# User-global RTK filters — apply to all your projects.
+# Project-local .rtk/filters.toml takes precedence over these.
+# Docs: https://github.com/rtk-ai/rtk#custom-filters
+schema_version = 1
+
+# =============================================================================
+# SSH — remote command output (biggest unhandled category: 2,014 commands)
+# Only strips connection boilerplate, never truncates actual content
+# =============================================================================
+[filters.ssh]
+description = "Strip SSH connection noise"
+match_command = "^ssh\\b"
+strip_ansi = true
+strip_lines_matching = [
+  "^\\s*$",
+  "^Warning: Permanently added",
+  "^Connection to .* closed",
+  "^Pseudo-terminal",
+]
+on_empty = "ssh: ok (no output)"
+
+[[tests.ssh]]
+name = "strips connection noise, preserves content"
+input = """
+Warning: Permanently added '192.168.8.170' (ED25519) to the list of known hosts.
+total 24K
+drwxr-xr-x 3 root root 4.0K Mar 20 10:00 backups
+drwxr-xr-x 5 root root 4.0K Mar 19 08:30 data
+Connection to 192.168.8.170 closed.
+"""
+expected = """total 24K
+drwxr-xr-x 3 root root 4.0K Mar 20 10:00 backups
+drwxr-xr-x 5 root root 4.0K Mar 19 08:30 data"""
+
+# =============================================================================
+# nono — sandbox runner (120 commands)
+# Only strips nono's own warnings, passes through actual command output intact
+# =============================================================================
+[filters.nono]
+description = "Strip nono sandbox warnings"
+match_command = "^nono\\b"
+strip_ansi = true
+strip_lines_matching = [
+  "^\\s*$",
+  "^nono: warning:",
+  "^nono: override_deny",
+  "^nono: Sandbox",
+]
+on_empty = "nono: ok"
+
+[[tests.nono]]
+name = "strips warnings, preserves command output"
+input = """
+nono: warning: override_deny relaxing deny rule for /Users/ricardo/.ssh
+nono: warning: override_deny relaxing deny rule for /Users/ricardo/.config/op
+actual command output here
+"""
+expected = "actual command output here"
+
+# =============================================================================
+# python3 — strip ANSI and blank lines only
+# =============================================================================
+[filters.python3]
+description = "Strip noise from Python output"
+match_command = "^python3?\\b"
+strip_ansi = true
+strip_lines_matching = [
+  "^\\s*$",
+]
+
+# =============================================================================
+# scp — short-circuit on success, pass through errors fully
+# =============================================================================
+[filters.scp]
+description = "Compact SCP success, full errors"
+match_command = "^scp\\b"
+strip_ansi = true
+strip_lines_matching = [
+  "^\\s*$",
+  "^\\s*\\d+%",
+]
+match_output = [
+  { pattern = "100%", message = "scp: transfer complete", unless = "error|Error|No such file|Permission denied" },
+]
+on_empty = "scp: ok"
+
+[[tests.scp]]
+name = "successful transfer"
+input = """
+file.tar.gz                                   100%  245MB  98.2MB/s   00:02
+"""
+expected = "scp: transfer complete"
+
+[[tests.scp]]
+name = "error passes through fully"
+input = """
+scp: /tmp/missing.txt: No such file or directory
+"""
+expected = "scp: /tmp/missing.txt: No such file or directory"
