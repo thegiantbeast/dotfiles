@@ -100,5 +100,19 @@ else
   echo "    ! icm not found; skipping ICM init."
 fi
 
+echo "--> Installing Glance (Quick Look extension)"
+GLANCE_DMG_URL=$(curl -sL https://api.github.com/repos/chamburr/glance/releases/latest | jq -r '.assets[] | select(.name | endswith(".dmg")) | .browser_download_url')
+if [[ -n "${GLANCE_DMG_URL}" ]]; then
+  curl -fsSL "${GLANCE_DMG_URL}" -o /tmp/Glance.dmg
+  hdiutil attach /tmp/Glance.dmg -nobrowse -quiet
+  GLANCE_VOL=$(find /Volumes -maxdepth 1 -name "Glance*" -print -quit)
+  cp -R "${GLANCE_VOL}/Glance.app" /Applications/
+  hdiutil detach "${GLANCE_VOL}" -quiet
+  xattr -rd com.apple.quarantine /Applications/Glance.app
+  rm -f /tmp/Glance.dmg
+else
+  echo "    ! Could not fetch Glance release URL; install manually from https://github.com/chamburr/glance/releases"
+fi
+
 # Enable USB LAN adapter drivers
 sudo kextload -b com.apple.driver.usb.realtek8153patcher
