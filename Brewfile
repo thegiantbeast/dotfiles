@@ -39,6 +39,7 @@ brew "act"
 brew "gh"
 brew "git"
 brew "git-delta"
+brew "git-filter-repo"
 brew "git-gui"
 brew "git-lfs"
 brew "lazygit"
@@ -66,6 +67,7 @@ brew "teamookla/speedtest/speedtest"
 
 # === Media / Image / PDF ===
 brew "ffmpeg"
+brew "exiftool"
 brew "imagemagick"
 
 # === Security & Certificates ===
@@ -87,7 +89,7 @@ cask "ungoogled-chromium"
 
 # -- Development --
 #cask "android-studio"
-cask "claude-code"
+cask "claude-code@latest"
 cask "codex"
 cask "dbeaver-community"
 cask "gcloud-cli"
@@ -110,6 +112,7 @@ cask "pdf-expert"
 cask "raycast"
 cask "slack"
 cask "telegram"
+cask "ticktick"
 cask "zoom"
 
 # -- Design & Media --
