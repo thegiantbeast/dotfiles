@@ -73,11 +73,24 @@ defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
 defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
 
 # Spotlight
-log "Disabling Spotlight"
-sudo mdutil -a -i off || true
+log "Configuring Spotlight"
+SPOTLIGHT_ENABLED=("APPLICATIONS" "SYSTEM_PREFS")
+SPOTLIGHT_ALL=(APPLICATIONS MENU_EXPRESSION CONTACT MENU_CONVERSION MENU_DEFINITION \
+               SOURCE DOCUMENTS EVENT_TODO DIRECTORIES FONTS IMAGES MESSAGES \
+               MOVIES MUSIC MENU_OTHER PDF PRESENTATIONS MENU_SPOTLIGHT_SUGGESTIONS \
+               SPREADSHEETS SYSTEM_PREFS TIPS BOOKMARKS)
+SPOTLIGHT_PLIST="<array>"
+for name in "${SPOTLIGHT_ALL[@]}"; do
+  state=0
+  for e in "${SPOTLIGHT_ENABLED[@]}"; do [ "$name" = "$e" ] && state=1; done
+  SPOTLIGHT_PLIST+="<dict><key>enabled</key><integer>${state}</integer><key>name</key><string>${name}</string></dict>"
+done
+SPOTLIGHT_PLIST+="</array>"
+defaults write com.apple.Spotlight orderedItems "$SPOTLIGHT_PLIST"
 defaults write com.apple.controlcenter "NSStatusItem Visible Spotlight" -bool false
 /usr/libexec/PlistBuddy -c "Set :AppleSymbolicHotKeys:64:enabled false" "$HOME/Library/Preferences/com.apple.symbolichotkeys.plist" || true
 /usr/libexec/PlistBuddy -c "Set :AppleSymbolicHotKeys:65:enabled false" "$HOME/Library/Preferences/com.apple.symbolichotkeys.plist" || true
+log "Note: manually add \$HOME to System Settings > Spotlight > Search Privacy (SIP blocks scripting it)"
 
 # Display sleep timers
 log "Configuring power management (display sleep)"
