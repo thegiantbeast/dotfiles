@@ -23,7 +23,7 @@ source ~/.orbstack/shell/init.zsh 2>/dev/null || :
 
 # === AI agents — sandboxed via nono ===
 claude() {
-  local nono_args=(--profile ai --trust-override --allow-cwd -s)
+  local nono_args=(--profile claude --trust-override --allow-cwd -s)
   local git_common
   git_common=$(git rev-parse --git-common-dir 2>/dev/null)
   if [[ -n "$git_common" && "$git_common" != ".git" ]]; then
@@ -32,7 +32,7 @@ claude() {
   nono run "${nono_args[@]}" -- claude "$@"
 }
 codex() {
-  local nono_args=(--profile ai --trust-override --allow-cwd -s)
+  local nono_args=(--profile codex --trust-override --allow-cwd -s)
   local git_common
   git_common=$(git rev-parse --git-common-dir 2>/dev/null)
   if [[ -n "$git_common" && "$git_common" != ".git" ]]; then
