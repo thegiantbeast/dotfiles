@@ -4,4 +4,5 @@ SETUVAR __fish_initialized:4300
 SETUVAR _fisher_edc_2F_bass_files:\x7e/\x2econfig/fish/functions/__bass\x2epy\x1e\x7e/\x2econfig/fish/functions/bass\x2efish
 SETUVAR _fisher_plugins:edc/bass
 SETUVAR _fisher_upgraded_to_4_4:\x1d
+SETUVAR fish_greeting:\x1d
 SETUVAR fish_user_paths:/opt/homebrew/opt/grep/libexec/gnubin\x1e/opt/homebrew/opt/libpq/bin\x1e/opt/homebrew/bin\x1e/Applications/Ghostty\x2eapp/Contents/MacOS

@@ -8,6 +8,10 @@ end
 
 set -gx EDITOR vi
 
+# Make non-interactive bash subshells (e.g. `bash -c '...'` from agents)
+# load ~/.bashrc so they inherit Homebrew/fnm/etc.
+set -gx BASH_ENV $HOME/.bashrc
+
 # Added by OrbStack: command-line tools and integration
 # This won't be added again if you remove it.
 source ~/.orbstack/shell/init2.fish 2>/dev/null || :
