@@ -1,0 +1,17 @@
+{
+  "name": "web-quality-picks",
+  "description": "Pinned copy of github.com/addyosmani/web-quality-skills — Lighthouse, Core Web Vitals, WCAG 2.2, and SEO skills for frontend work.",
+  "author": {
+    "name": "Addy Osmani"
+  },
+  "homepage": "https://github.com/addyosmani/web-quality-skills",
+  "license": "MIT",
+  "skills": [
+    "./skills/web-quality-audit",
+    "./skills/performance",
+    "./skills/core-web-vitals",
+    "./skills/accessibility",
+    "./skills/seo",
+    "./skills/best-practices"
+  ]
+}

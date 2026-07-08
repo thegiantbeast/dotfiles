@@ -33,31 +33,6 @@ drwxr-xr-x 3 root root 4.0K Mar 20 10:00 backups
 drwxr-xr-x 5 root root 4.0K Mar 19 08:30 data"""
 
 # =============================================================================
-# nono — sandbox runner (120 commands)
-# Only strips nono's own warnings, passes through actual command output intact
-# =============================================================================
-[filters.nono]
-description = "Strip nono sandbox warnings"
-match_command = "^nono\\b"
-strip_ansi = true
-strip_lines_matching = [
-  "^\\s*$",
-  "^nono: warning:",
-  "^nono: override_deny",
-  "^nono: Sandbox",
-]
-on_empty = "nono: ok"
-
-[[tests.nono]]
-name = "strips warnings, preserves command output"
-input = """
-nono: warning: override_deny relaxing deny rule for /Users/ricardo/.ssh
-nono: warning: override_deny relaxing deny rule for /Users/ricardo/.config/op
-actual command output here
-"""
-expected = "actual command output here"
-
-# =============================================================================
 # python3 — strip ANSI and blank lines only
 # =============================================================================
 [filters.python3]

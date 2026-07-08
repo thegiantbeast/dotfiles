@@ -1,10 +1,10 @@
 # Encrypt sensitive data files
 .config/icm/memories.db filter=git-crypt diff=git-crypt
-.config/nono/profiles/*.json filter=git-crypt diff=git-crypt
 .ssh/config filter=git-crypt diff=git-crypt
 .claude/CLAUDE.md filter=git-crypt diff=git-crypt
 .claude/RTK.md filter=git-crypt diff=git-crypt
 .claude/settings.json filter=git-crypt diff=git-crypt
 .claude/research/*.md filter=git-crypt diff=git-crypt
 .claude/hooks/*.sh filter=git-crypt diff=git-crypt
-.claude/hooks/.rtk-hook.sha256 filter=git-crypt diff=git-crypt
+.claude/skills/SOURCES.md filter=git-crypt diff=git-crypt
+.claude/skills/personal/** filter=git-crypt diff=git-crypt

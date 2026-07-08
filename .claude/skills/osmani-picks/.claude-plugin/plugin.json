@@ -1,0 +1,14 @@
+{
+  "name": "osmani-picks",
+  "description": "Cherry-picked skills from addyosmani/agent-skills (v0.6.3) — only the gaps not covered by Claude Code built-ins or other installed packs.",
+  "author": {
+    "name": "Addy Osmani"
+  },
+  "homepage": "https://github.com/addyosmani/agent-skills",
+  "license": "MIT",
+  "skills": [
+    "./skills/documentation-and-adrs",
+    "./skills/observability-and-instrumentation",
+    "./skills/performance-optimization"
+  ]
+}
