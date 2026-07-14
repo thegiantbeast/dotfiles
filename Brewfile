@@ -136,7 +136,6 @@ cask "the-unarchiver"
 # -- Cloud & Networking --
 cask "expressvpn"
 cask "private-internet-access"
-cask "tailscale-app"
 cask "wireshark-app"
 
 # -- Fonts --
@@ -159,6 +158,7 @@ mas "GIPHY CAPTURE", id: 668208984
 mas "iMovie", id: 408981434
 mas "Prime Video", id: 545519333
 mas "Speedtest", id: 1153157709
+mas "Tailscale", id: 1475387142
 mas "The Unarchiver", id: 425424353
 mas "WhatsApp", id: 310633997
 mas "Windows App", id: 1295203466
