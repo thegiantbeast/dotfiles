@@ -1,0 +1,63 @@
+#!/bin/sh
+# git wrm [-f|--force] <branch-or-worktree>...
+#
+# Remove one or more worktrees AND their branches. Each target may be a branch
+# name, a worktree directory basename, or a full worktree path; an exact branch
+# match wins over a path/basename match, so mismatched dir/branch names and
+# slash-containing branch names both resolve correctly.
+set -u
+
+force=""
+targets=""
+for a in "$@"; do
+    case "$a" in
+    -f | --force) force="--force" ;;
+    *) targets="$targets $a" ;;
+    esac
+done
+
+[ -n "$targets" ] || {
+    echo 'usage: git wrm [-f|--force] <branch-or-worktree>...' >&2
+    exit 1
+}
+
+if [ -d .bare ]; then
+    bare="$PWD/.bare"
+else
+    bare=$(git rev-parse --git-common-dir 2>/dev/null) || {
+        echo 'Not inside a worktree' >&2
+        exit 2
+    }
+fi
+
+status=0
+for name in $targets; do
+    resolved=$(git --git-dir="$bare" worktree list --porcelain | awk -v t="$name" '
+        index($0, "worktree ") == 1 { p = substr($0, 10); b = "" }
+        index($0, "branch refs/heads/") == 1 {
+            b = substr($0, 19)
+            n = p
+            while (index(n, "/") > 0) n = substr(n, index(n, "/") + 1)
+            if (t == b)                              { sp = p; sb = b }
+            else if ((t == n || t == p) && wp == "") { wp = p; wb = b }
+        }
+        END {
+            pp = (sp != "" ? sp : wp)
+            bb = (sp != "" ? sb : wb)
+            if (pp != "") printf "%s|%s", pp, bb
+        }')
+    if [ -z "$resolved" ]; then
+        echo "wrm: no worktree matches '$name'" >&2
+        status=1
+        continue
+    fi
+    path=${resolved%%|*}
+    branch=${resolved#*|}
+    if git --git-dir="$bare" worktree remove $force "$path"; then
+        [ -n "$branch" ] && { git --git-dir="$bare" branch -D "$branch" || status=1; }
+    else
+        status=1
+    fi
+done
+
+exit $status

@@ -1,0 +1,215 @@
+#!/bin/sh
+# git wprune [-n|--dry-run] [-f|--fetch] [-F|--force] [-y|--yes]
+#
+# Remove every worktree whose branch is already merged OR squash-merged into the
+# default branch (origin/HEAD, else main/master). Removal is delegated to
+# `git wrm`, which deletes both the worktree and its branch. The default branch
+# worktree and the worktree you are standing in are never touched.
+set -u
+
+# Git exports GIT_DIR/GIT_WORK_TREE when running an alias; clearing them lets the
+# plain `git` calls below (notably `git -C <worktree> status`) discover each
+# worktree on its own instead of being pinned to the invoking repo.
+unset GIT_DIR GIT_WORK_TREE GIT_PREFIX 2>/dev/null || true
+
+dry=0
+fetch=0
+force=0
+yes=0
+for a in "$@"; do
+    case "$a" in
+    -n | --dry-run) dry=1 ;;
+    -f | --fetch) fetch=1 ;;
+    -F | --force) force=1 ;;
+    -y | --yes) yes=1 ;;
+    -h | --help)
+        cat <<'EOF'
+git wprune — remove worktrees whose branch is merged or squash-merged into main/master
+
+Usage: git wprune [-n|--dry-run] [-f|--fetch] [-F|--force] [-y|--yes]
+
+  -n, --dry-run  Show what would be removed; change nothing
+  -f, --fetch    git fetch --prune first, and compare against origin/<base>
+  -F, --force    Remove even worktrees with local changes
+  -y, --yes      Skip the confirmation prompt
+
+Removal is delegated to 'git wrm', which deletes both the worktree and its branch.
+EOF
+        exit 0
+        ;;
+    *)
+        echo "git wprune: unknown option '$a'" >&2
+        exit 2
+        ;;
+    esac
+done
+
+# Locate the shared repo (.bare) whether this runs from the wrapper dir that
+# holds .bare + the worktrees, or from inside one of the worktrees. Every
+# repo-wide query below goes through `g`, so it works even when the wrapper dir
+# has no discoverable .git of its own.
+if [ -d .bare ]; then
+    bare="$PWD/.bare"
+else
+    bare=$(git rev-parse --git-common-dir 2>/dev/null) || {
+        echo 'git wprune: run this from a worktree or the dir that contains .bare' >&2
+        exit 1
+    }
+    case "$bare" in /*) ;; *) bare="$PWD/$bare" ;; esac
+fi
+g() { git --git-dir="$bare" "$@"; }
+
+# Default branch: prefer origin/HEAD, else whichever of main/master exists.
+base=$(g symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
+if [ -z "$base" ]; then
+    for b in main master; do
+        if g show-ref --verify --quiet "refs/heads/$b"; then
+            base=$b
+            break
+        fi
+    done
+fi
+[ -n "$base" ] || {
+    echo 'git wprune: could not determine the default branch (main/master)' >&2
+    exit 1
+}
+
+[ "$fetch" = 1 ] && {
+    echo 'Fetching…'
+    g fetch --prune >/dev/null 2>&1
+}
+
+# Compare against origin/<base> when it exists (the real merge target), else local.
+baseref=$base
+g show-ref --verify --quiet "refs/remotes/origin/$base" && baseref="origin/$base"
+
+# The worktree we are standing in (empty when run from the wrapper dir); it is
+# CWD-based on purpose, so it is never mistakenly pruned.
+here=$(git rev-parse --show-toplevel 2>/dev/null)
+
+# Merged if the branch tip is an ancestor of base (plain merge / fast-forward),
+# or if the branch's whole diff is already present in base (squash merge). The
+# squash test rebuilds the branch's tree as a throwaway commit on the merge-base
+# and asks `git cherry` whether base already contains an equivalent patch.
+is_merged() {
+    br=$1
+    g merge-base --is-ancestor "refs/heads/$br" "$baseref" 2>/dev/null && return 0
+    mb=$(g merge-base "$baseref" "refs/heads/$br" 2>/dev/null) || return 1
+    tree=$(g rev-parse "refs/heads/$br^{tree}" 2>/dev/null) || return 1
+    dangling=$(g commit-tree "$tree" -p "$mb" -m _ 2>/dev/null) || return 1
+    [ "$(g cherry "$baseref" "$dangling" 2>/dev/null | cut -c1 | head -n1)" = "-" ]
+}
+
+rmf=$(mktemp)
+keepf=$(mktemp)
+skipf=$(mktemp)
+trap 'rm -f "$rmf" "$keepf" "$skipf"' EXIT
+
+path=""
+branch=""
+isbare=0
+isdet=0
+flush() {
+    [ -z "$path" ] && return
+    [ "$isbare" = 1 ] && return
+    if [ "$isdet" = 1 ]; then
+        echo "$path (detached HEAD)" >>"$skipf"
+        return
+    fi
+    [ "$branch" = "$base" ] && return
+    if [ "$path" = "$here" ]; then
+        echo "$branch (current worktree)" >>"$skipf"
+        return
+    fi
+    if is_merged "$branch"; then
+        note=""
+        [ -n "$(git -C "$path" status --porcelain 2>/dev/null)" ] && note=dirty
+        printf '%s\t%s\t%s\n' "$path" "$branch" "$note" >>"$rmf"
+    else
+        echo "$branch" >>"$keepf"
+    fi
+}
+
+# Redirected (not piped) so flush() mutates state in the current shell.
+while IFS= read -r line; do
+    case "$line" in
+    "worktree "*)
+        flush
+        path=${line#worktree }
+        branch=""
+        isbare=0
+        isdet=0
+        ;;
+    "branch refs/heads/"*) branch=${line#branch refs/heads/} ;;
+    bare) isbare=1 ;;
+    detached) isdet=1 ;;
+    esac
+done <<EOF
+$(g worktree list --porcelain)
+EOF
+flush
+
+n=$(wc -l <"$rmf" | tr -d ' ')
+
+joinkept() { paste -sd, "$keepf" | sed 's/,/, /g'; }
+
+if [ "$n" -eq 0 ]; then
+    echo "Nothing to prune — no merged worktrees (base: $baseref)."
+    [ -s "$keepf" ] && echo "Kept (not merged): $(joinkept)"
+    exit 0
+fi
+
+echo "Merged into $baseref — will remove $n worktree(s):"
+tab=$(printf '\t')
+while IFS="$tab" read -r p b note; do
+    suffix=""
+    if [ "$note" = dirty ]; then
+        if [ "$force" = 1 ]; then
+            suffix=" (has local changes — will force)"
+        else
+            suffix=" (has local changes — needs -F, will be skipped)"
+        fi
+    fi
+    echo "  ✓ $b  [$p]$suffix"
+done <"$rmf"
+
+[ -s "$keepf" ] && {
+    echo
+    echo "Kept (not merged): $(joinkept)"
+}
+while IFS= read -r s; do echo "  ~ skipped: $s"; done <"$skipf"
+
+if [ "$dry" = 1 ]; then
+    echo
+    echo '(dry-run — nothing removed)'
+    exit 0
+fi
+
+if [ "$yes" != 1 ]; then
+    printf 'Remove these %s worktree(s)? [y/N] ' "$n"
+    read -r ans </dev/tty || ans=""
+    case "$ans" in
+    y | Y | yes | YES | Yes) ;;
+    *)
+        echo 'Aborted.'
+        exit 1
+        ;;
+    esac
+fi
+
+wrmflag=""
+[ "$force" = 1 ] && wrmflag="-f"
+removed=0
+failed=0
+while IFS="$tab" read -r p b note; do
+    if git wrm $wrmflag "$b"; then
+        removed=$((removed + 1))
+    else
+        failed=$((failed + 1))
+    fi
+done <"$rmf"
+
+echo
+echo "Done: $removed removed, $failed skipped/failed."
+[ "$failed" -gt 0 ] && exit 1
+exit 0

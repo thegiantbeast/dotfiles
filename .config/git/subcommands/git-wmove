@@ -1,0 +1,50 @@
+#!/bin/sh
+# git wmove <old> <new>
+#
+# Move a worktree to directory <new> and rename its branch to <new>. <old> may
+# be a branch name, a worktree directory basename, or a full worktree path; an
+# exact branch match wins over a path/basename match, so mismatched dir/branch
+# names resolve correctly.
+set -u
+
+old="${1:-}"
+new="${2:-}"
+[ -n "$old" ] && [ -n "$new" ] || {
+    echo 'usage: git wmove <old> <new>' >&2
+    exit 1
+}
+
+if [ -d .bare ]; then
+    wrap="$PWD"
+    bare="$PWD/.bare"
+else
+    bare=$(git rev-parse --git-common-dir 2>/dev/null) || {
+        echo 'Not inside a worktree' >&2
+        exit 2
+    }
+    wrap=$(dirname "$bare")
+fi
+
+resolved=$(git --git-dir="$bare" worktree list --porcelain | awk -v t="$old" '
+    index($0, "worktree ") == 1 { p = substr($0, 10); b = "" }
+    index($0, "branch refs/heads/") == 1 {
+        b = substr($0, 19)
+        n = p
+        while (index(n, "/") > 0) n = substr(n, index(n, "/") + 1)
+        if (t == b)                              { sp = p; sb = b }
+        else if ((t == n || t == p) && wp == "") { wp = p; wb = b }
+    }
+    END {
+        pp = (sp != "" ? sp : wp)
+        bb = (sp != "" ? sb : wb)
+        if (pp != "") printf "%s|%s", pp, bb
+    }')
+[ -n "$resolved" ] || {
+    echo "wmove: no worktree matches '$old'" >&2
+    exit 1
+}
+path=${resolved%%|*}
+branch=${resolved#*|}
+
+git --git-dir="$bare" worktree move "$path" "$wrap/$new" || exit 1
+[ -n "$branch" ] && git --git-dir="$bare" branch -m "$branch" "$new"

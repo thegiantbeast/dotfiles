@@ -1,0 +1,52 @@
+#!/bin/sh
+# git wadd [-b <new-branch>] <branch> [<dir>]
+#
+#   git wadd <branch> [<dir>]      check out an existing local (or origin) branch
+#   git wadd -b <branch> [<dir>]   create a new branch
+#
+# <dir> is the worktree directory (relative to the repo wrapper dir) and
+# defaults to the branch name. Extra args after <dir> pass through to
+# `git worktree add` in the -b form (e.g. a start point).
+set -eu
+
+if [ -d .bare ]; then
+    wrap="$PWD"
+    bare="$PWD/.bare"
+else
+    bare=$(git rev-parse --git-common-dir 2>/dev/null) || {
+        echo 'Not inside a worktree' >&2
+        exit 2
+    }
+    wrap=$(dirname "$bare")
+fi
+
+if [ "${1:-}" = "-b" ]; then
+    shift
+    b="${1:-}"
+    [ -n "$b" ] || {
+        echo 'usage: git wadd -b <new-branch> [<dir>]' >&2
+        exit 1
+    }
+    shift || true
+    dest="${1:-}"
+    [ -n "$dest" ] || dest="$b"
+    shift || true
+    exec git --git-dir="$bare" worktree add -b "$b" "$wrap/$dest" "$@"
+fi
+
+branch="${1:-}"
+[ -n "$branch" ] || {
+    echo 'usage: git wadd [-b <new-branch>] <branch> [<dir>]' >&2
+    exit 1
+}
+dest="${2:-}"
+[ -n "$dest" ] || dest="$branch"
+
+if git --git-dir="$bare" show-ref --verify --quiet "refs/heads/$branch"; then
+    git --git-dir="$bare" worktree add "$wrap/$dest" "$branch"
+elif git --git-dir="$bare" show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+    git --git-dir="$bare" worktree add -b "$branch" "$wrap/$dest" "origin/$branch"
+else
+    echo "Branch '$branch' not found; use -b to create it" >&2
+    exit 1
+fi
