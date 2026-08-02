@@ -8,3 +8,5 @@ alias dotfiles="code ~/.dotfiles"
 
 alias tequity="zellij --layout tequity"
 alias momentus="zellij --layout momentus"
+
+alias claude="claude --allow-dangerously-skip-permissions"

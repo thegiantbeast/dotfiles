@@ -85,6 +85,7 @@ cask "helium-browser"
 cask "microsoft-edge"
 cask "safari-technology-preview"
 cask "ungoogled-chromium"
+cask "vivaldi"
 
 # -- Development --
 #cask "android-studio"
