@@ -40,9 +40,15 @@ if ! mkdir "$LOCK" 2>/dev/null; then
   fi
 fi
 
-WORK="$(mktemp -d)"
-cleanup() { rm -rf "$WORK"; rmdir "$LOCK" 2>/dev/null || true; }
+# Install cleanup before anything that can fail, so a failure here cannot leak
+# the lock and block every run until the stale-lock timeout.
+WORK=""
+cleanup() {
+  [[ -n "$WORK" ]] && rm -rf "$WORK"
+  rmdir "$LOCK" 2>/dev/null || true
+}
 trap cleanup EXIT
+WORK="$(mktemp -d)" || die "could not create a working directory"
 
 for bin in sqlite3 gpg git gzip; do
   command -v "$bin" >/dev/null 2>&1 || die "$bin not found in PATH"
