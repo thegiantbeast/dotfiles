@@ -4,3 +4,10 @@
 *~
 .DS_Store
 **/.DS_Store
+
+# ICM memory database: snapshotted to the icm-backup branch, never onto main.
+# The .gitattributes git-crypt entry stays as a guard in case it is ever
+# force-added by hand.
+.config/icm/memories.db
+.config/icm/memories.db-wal
+.config/icm/memories.db-shm

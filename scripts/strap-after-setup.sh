@@ -91,6 +91,13 @@ else
   echo "    ! rtk not found; skipping RTK init."
 fi
 
+echo "--> Restoring ICM memory database from the icm-backup branch"
+# Runs before `icm init` so the restore lands on an absent target rather than
+# an empty database that icm would have just created.
+if ! bash "${DOTFILES_DIR}/scripts/icm-db-restore.sh"; then
+  echo "    ! Restore skipped; no backup on origin yet, or the YubiKey is absent."
+fi
+
 echo "--> Initializing ICM (persistent memory for AI coding agents)"
 if command -v icm &>/dev/null; then
   # ICM on macOS reads from ~/Library/Application Support/dev.icm.icm/ — symlink entire dir to ~/.config/icm/
@@ -99,6 +106,16 @@ if command -v icm &>/dev/null; then
 else
   echo "    ! icm not found; skipping ICM init."
 fi
+
+echo "--> Installing the ICM backup launch agent (daily, catches up after sleep)"
+ICM_AGENT="eu.ricardoferreira.icm-db-backup"
+mkdir -p "${HOME}/Library/LaunchAgents" "${HOME}/Library/Logs"
+sed "s|__HOME__|${HOME}|g" \
+  "${DOTFILES_DIR}/scripts/${ICM_AGENT}.plist.template" \
+  >"${HOME}/Library/LaunchAgents/${ICM_AGENT}.plist"
+launchctl bootout "gui/$(id -u)/${ICM_AGENT}" 2>/dev/null || true
+launchctl bootstrap "gui/$(id -u)" "${HOME}/Library/LaunchAgents/${ICM_AGENT}.plist"
+launchctl enable "gui/$(id -u)/${ICM_AGENT}"
 
 echo "--> Installing Glance (Quick Look extension)"
 GLANCE_DMG_URL=$(curl -sL https://api.github.com/repos/chamburr/glance/releases/latest | jq -r '.assets[] | select(.name | endswith(".dmg")) | .browser_download_url')

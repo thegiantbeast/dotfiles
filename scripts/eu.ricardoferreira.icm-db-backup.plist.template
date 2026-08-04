@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Rendered into ~/Library/LaunchAgents by scripts/strap-after-setup.sh, which
+  substitutes __HOME__. StartCalendarInterval (not StartInterval) so a slot
+  missed while the laptop is asleep or off fires once on wake; StartInterval
+  restarts its countdown on every load and can starve across reboots.
+
+  SSH_AUTH_SOCK points at gpg-agent: the ssh key used to push lives on the
+  YubiKey, and launchd jobs inherit no agent socket.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>eu.ricardoferreira.icm-db-backup</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/bash</string>
+        <string>__HOME__/.dotfiles/scripts/icm-db-backup.sh</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>SSH_AUTH_SOCK</key>
+        <string>__HOME__/.gnupg/S.gpg-agent.ssh</string>
+    </dict>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>13</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <key>StandardErrorPath</key>
+    <string>__HOME__/Library/Logs/icm-db-backup.err.log</string>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+    <key>LowPriorityIO</key>
+    <true/>
+    <key>Nice</key>
+    <integer>5</integer>
+</dict>
+</plist>
