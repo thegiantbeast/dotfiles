@@ -6,5 +6,6 @@
 .claude/settings.json filter=git-crypt diff=git-crypt
 .claude/research/*.md filter=git-crypt diff=git-crypt
 .claude/hooks/*.sh filter=git-crypt diff=git-crypt
+.claude/output-styles/personal/** filter=git-crypt diff=git-crypt
 .claude/skills/SOURCES.md filter=git-crypt diff=git-crypt
 .claude/skills/personal/** filter=git-crypt diff=git-crypt
