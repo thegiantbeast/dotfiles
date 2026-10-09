@@ -36,3 +36,12 @@
     wmove = "!$HOME/.config/git/subcommands/git-wmove"
     wprune = "!$HOME/.config/git/subcommands/git-wprune"
     bclone = "!$HOME/.config/git/subcommands/git-bclone"
+
+[url "https://github.com/"]
+	insteadOf = git@github.com:
+[url "git@github.com:"]
+	pushInsteadOf = git@github.com:
+
+[credential "https://github.com"]
+	helper =
+	helper = !/opt/homebrew/bin/gh auth git-credential
