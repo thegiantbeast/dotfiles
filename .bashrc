@@ -6,6 +6,11 @@ export PATH="/opt/homebrew/opt/grep/libexec/gnubin:$PATH"
 # === Editor ===
 export EDITOR=vi
 
+# === Terraform ===
+# One shared provider cache; per-project .terraform dirs hard-link into it.
+export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+[ -d "$TF_PLUGIN_CACHE_DIR" ] || mkdir -p "$TF_PLUGIN_CACHE_DIR"
+
 # === Node (fnm) ===
 # Only init if not already set up by a parent shell — avoids piling up
 # orphaned symlinks in ~/.local/state/fnm_multishells/ for every subshell.
@@ -15,6 +20,8 @@ fi
 
 # === Google Cloud SDK (PATH only — completion is interactive) ===
 if [ -f '/opt/homebrew/share/google-cloud-sdk/path.bash.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/path.bash.inc'; fi
+# ~/.dotfiles/scripts/gcloud-shim/gcloud must shadow the SDK binary (re-login on session expiry).
+PATH="$HOME/.dotfiles/scripts/gcloud-shim:$(printf '%s' "$PATH" | tr ':' '\n' | grep -vxF "$HOME/.dotfiles/scripts/gcloud-shim" | paste -sd: -)"; export PATH
 
 # Make non-interactive bash subshells (e.g. `bash -c '...'` from agents)
 # also load this file so they inherit Homebrew/fnm/etc.
@@ -34,3 +41,5 @@ if [ -f '/opt/homebrew/share/google-cloud-sdk/completion.bash.inc' ]; then . '/o
 # === OrbStack ===
 source ~/.orbstack/shell/init.bash 2>/dev/null || :
 
+
+. "$HOME/.local/bin/env"

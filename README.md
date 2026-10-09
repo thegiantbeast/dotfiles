@@ -41,6 +41,7 @@ Scripts
 - `scripts/strap-after-setup.sh`: Runs `.macos`, stows configs, git ssh keys setup, ICM restore and backup agent.
 - `scripts/icm-db-backup.sh`: Snapshots the ICM memory database to the `icm-backup` branch. `--no-push` commits locally only.
 - `scripts/icm-db-restore.sh`: Restores that snapshot. `--list` shows available ones, `--commit <sha>` picks an older one, `--force` replaces an existing database.
+- `scripts/gcloud-shim/gcloud`: Shadows the SDK `gcloud` on `PATH`. When a non-interactive call (agents, `gke-gcloud-auth-plugin`, terraform) fails on an expired Google Cloud session, it opens the browser login once, waits for the approval, and re-runs the command. `GCLOUD_SHIM_DISABLE=1` bypasses it.
 
 Structure
 ---------

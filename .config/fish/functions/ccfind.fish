@@ -20,6 +20,11 @@ function ccfind --description 'Resume-picker for Claude Code sessions across all
     test (count $argv) -ge 1; and set term $argv[1]
     test (count $argv) -ge 2; and set max $argv[2]
 
+    if test -n "$term"; and not type -q rg
+        echo "ccfind: rg (ripgrep) not found — install it with 'brew install ripgrep'" >&2
+        return 1
+    end
+
     if not isatty stdout; or set -q _flag_list
         set -l out
         if test -n "$term"

@@ -1,5 +1,6 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
+SETUVAR --export OP_SESSION_my:\x1d
 SETUVAR __fish_initialized:4300
 SETUVAR _fisher_edc_2F_bass_files:\x7e/\x2econfig/fish/functions/__bass\x2epy\x1e\x7e/\x2econfig/fish/functions/bass\x2efish
 SETUVAR _fisher_plugins:edc/bass
