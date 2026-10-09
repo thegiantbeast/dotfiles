@@ -107,15 +107,16 @@ else
   echo "    ! icm not found; skipping ICM init."
 fi
 
-echo "--> Installing the ICM backup launch agent (daily, catches up after sleep)"
-ICM_AGENT="eu.ricardoferreira.icm-db-backup"
+echo "--> Installing the ICM launch agents (daily backup, weekly report; both catch up after sleep)"
 mkdir -p "${HOME}/Library/LaunchAgents" "${HOME}/Library/Logs"
-sed "s|__HOME__|${HOME}|g" \
-  "${DOTFILES_DIR}/scripts/${ICM_AGENT}.plist.template" \
-  >"${HOME}/Library/LaunchAgents/${ICM_AGENT}.plist"
-launchctl bootout "gui/$(id -u)/${ICM_AGENT}" 2>/dev/null || true
-launchctl bootstrap "gui/$(id -u)" "${HOME}/Library/LaunchAgents/${ICM_AGENT}.plist"
-launchctl enable "gui/$(id -u)/${ICM_AGENT}"
+for ICM_AGENT in eu.ricardoferreira.icm-db-backup dev.icm.maintenance; do
+  sed "s|__HOME__|${HOME}|g" \
+    "${DOTFILES_DIR}/scripts/${ICM_AGENT}.plist.template" \
+    >"${HOME}/Library/LaunchAgents/${ICM_AGENT}.plist"
+  launchctl bootout "gui/$(id -u)/${ICM_AGENT}" 2>/dev/null || true
+  launchctl bootstrap "gui/$(id -u)" "${HOME}/Library/LaunchAgents/${ICM_AGENT}.plist"
+  launchctl enable "gui/$(id -u)/${ICM_AGENT}"
+done
 
 echo "--> Installing Glance (Quick Look extension)"
 GLANCE_DMG_URL=$(curl -sL https://api.github.com/repos/chamburr/glance/releases/latest | jq -r '.assets[] | select(.name | endswith(".dmg")) | .browser_download_url')

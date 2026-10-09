@@ -94,8 +94,9 @@ gpg --batch --yes --trust-model always --encrypt --recipient "$RECIPIENT" \
   -o "${WORK}/${DUMP_NAME}" "${WORK}/dump.sql.gz" \
   || die "gpg encryption failed"
 
-# Never push this file unless it is genuinely ciphertext.
-gpg --list-packets "${WORK}/${DUMP_NAME}" >/dev/null 2>&1 \
+# Never push this file unless it is genuinely ciphertext. --list-only reads the
+# packet structure without decrypting, so the check needs no secret key.
+gpg --list-packets --list-only "${WORK}/${DUMP_NAME}" >/dev/null 2>&1 \
   || die "encrypted output is not a valid gpg message"
 if [[ "$(od -An -tx1 -N2 "${WORK}/${DUMP_NAME}" | tr -d ' \n')" == "1f8b" ]]; then
   die "encrypted output still looks like gzip; refusing to push plaintext"
@@ -154,16 +155,22 @@ if (( no_push )); then
   exit 0
 fi
 
+# HTTPS through the gh credential helper: the snapshot is already ciphertext, so
+# an unattended run needs no YubiKey for the SSH key.
+push_url="$(git config --get remote.origin.url)"
+push_url="${push_url/#git@github.com:/https://github.com/}"
+
 # Pruning rewrites the chain, so the push is necessarily non-fast-forward.
 # force-with-lease still refuses to clobber a remote we have not seen.
 if [[ -n "$remote_sha" ]]; then
   git push --quiet \
     --force-with-lease="refs/heads/${BRANCH}:${remote_sha}" \
-    origin "refs/heads/${BRANCH}:refs/heads/${BRANCH}" \
-    || die "push rejected (YubiKey absent, or remote moved unexpectedly)"
+    "$push_url" "refs/heads/${BRANCH}:refs/heads/${BRANCH}" \
+    || die "push rejected (gh not authenticated, or remote moved unexpectedly)"
 else
-  git push --quiet origin "refs/heads/${BRANCH}:refs/heads/${BRANCH}" \
-    || die "push failed while creating ${BRANCH} (YubiKey absent?)"
+  git push --quiet "$push_url" "refs/heads/${BRANCH}:refs/heads/${BRANCH}" \
+    || die "push failed while creating ${BRANCH} (gh not authenticated?)"
 fi
+git update-ref "refs/remotes/origin/${BRANCH}" "refs/heads/${BRANCH}"
 
 log "backed up $(wc -c <"${WORK}/${DUMP_NAME}" | tr -d ' ') bytes as $(git rev-parse --short "refs/heads/${BRANCH}")"

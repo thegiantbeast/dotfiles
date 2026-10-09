@@ -5,9 +5,6 @@
   substitutes __HOME__. StartCalendarInterval (not StartInterval) so a slot
   missed while the laptop is asleep or off fires once on wake; StartInterval
   restarts its countdown on every load and can starve across reboots.
-
-  SSH_AUTH_SOCK points at gpg-agent: the ssh key used to push lives on the
-  YubiKey, and launchd jobs inherit no agent socket.
 -->
 <plist version="1.0">
 <dict>
@@ -24,8 +21,6 @@
     <dict>
         <key>PATH</key>
         <string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
-        <key>SSH_AUTH_SOCK</key>
-        <string>__HOME__/.gnupg/S.gpg-agent.ssh</string>
     </dict>
 
     <key>StartCalendarInterval</key>

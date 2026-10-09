@@ -38,7 +38,7 @@ Scripts
 -------
 
 - `.macos`: Minimal, safe defaults (Finder, Dock, keyboard, trackpad, screenshots, no deprecated keys).
-- `scripts/strap-after-setup.sh`: Runs `.macos`, stows configs, git ssh keys setup, ICM restore and backup agent.
+- `scripts/strap-after-setup.sh`: Runs `.macos`, stows configs, git ssh keys setup, ICM restore, backup and weekly report agents.
 - `scripts/icm-db-backup.sh`: Snapshots the ICM memory database to the `icm-backup` branch. `--no-push` commits locally only.
 - `scripts/icm-db-restore.sh`: Restores that snapshot. `--list` shows available ones, `--commit <sha>` picks an older one, `--force` replaces an existing database.
 - `scripts/gcloud-shim/gcloud`: Shadows the SDK `gcloud` on `PATH`. When a non-interactive call (agents, `gke-gcloud-auth-plugin`, terraform) fails on an expired Google Cloud session, it opens the browser login once, waits for the approval, and re-runs the command. `GCLOUD_SHIM_DISABLE=1` bypasses it.
@@ -68,7 +68,9 @@ How a snapshot is made:
 
 Schedule: `~/Library/LaunchAgents/eu.ricardoferreira.icm-db-backup.plist`, daily at 13:00. It uses `StartCalendarInterval` rather than `StartInterval` so a slot missed while the laptop is asleep or off fires once on wake, instead of the countdown restarting on every load and starving across reboots. Log: `~/Library/Logs/icm-db-backup.log`.
 
-Requires the YubiKey: pushing uses an SSH key on the card, and restoring needs the encryption subkey, which is a card stub. Encrypting does not — it only needs the public key. A run without the card fails and is retried in the next slot.
+A backup runs without the YubiKey: encrypting needs only the public key, the ciphertext check reads packets without decrypting, and the push goes over HTTPS with the `gh` credential helper. Restoring needs the YubiKey, because the encryption subkey is a card stub.
+
+Weekly report: `~/Library/LaunchAgents/dev.icm.maintenance.plist` runs `.config/icm/maintenance.sh` on Mondays at 09:00. It appends `icm health`, a prune dry-run and the topics due for consolidation to `~/Library/Logs/icm-maintenance.log`, and never changes the database.
 
 Restore on a fresh machine happens automatically during post-strap. To do it by hand: `scripts/icm-db-restore.sh --list`, then `scripts/icm-db-restore.sh [--commit <sha>]`.
 
