@@ -1,0 +1,103 @@
+#!/bin/bash
+# gcloud shim. A non-interactive call that fails because the Google Cloud
+# session expired triggers one browser login, serialized across concurrent
+# callers, and then re-runs the original command. Interactive calls (stdin and
+# stderr on a terminal) go straight to the real binary, which prompts for the
+# reauth by itself. Stdout passes through untouched; shim messages go to stderr.
+#
+#   GCLOUD_SHIM_DISABLE=1         bypass the shim
+#   GCLOUD_SHIM_LOGIN_TIMEOUT=N   seconds to wait for the browser login (600)
+#   GCLOUD_SHIM_REAL=/path        real gcloud binary (Homebrew SDK)
+
+REAL="${GCLOUD_SHIM_REAL:-/opt/homebrew/share/google-cloud-sdk/bin/gcloud}"
+CFG="${CLOUDSDK_CONFIG:-$HOME/.config/gcloud}"
+LOCK="$CFG/.shim-login.lock"
+# epoch of the last login completed by the shim; waiters use it to decide the retry
+DONE="$CFG/.shim-login-done"
+WAIT_MAX="${GCLOUD_SHIM_LOGIN_TIMEOUT:-600}"
+REAUTH_RE='Reauthentication failed|reauth is required|Reauthentication is needed|invalid_rapt'
+
+msg() { printf 'gcloud-shim: %s\n' "$*" >&2; }
+
+if [ -n "${GCLOUD_SHIM_DISABLE:-}" ]; then
+  exec "$REAL" "$@"
+fi
+
+if [ -t 0 ] && [ -t 2 ]; then
+  exec "$REAL" "$@"
+fi
+
+ERRFILE=$(mktemp "${TMPDIR:-/tmp}/gcloud-shim.XXXXXX") || exec "$REAL" "$@"
+trap 'rm -f "$ERRFILE"' EXIT
+
+# stderr streams to the caller and into ERRFILE; stdout is left alone.
+{ "$REAL" "$@" 2>&1 1>&3 | tee "$ERRFILE" >&2; rc=${PIPESTATUS[0]}; } 3>&1
+[ "$rc" -eq 0 ] && exit 0
+grep -q -E "$REAUTH_RE" "$ERRFILE" || exit "$rc"
+
+run_timeout() {
+  local t=$1 pid i=0
+  shift
+  if command -v timeout >/dev/null 2>&1; then
+    timeout "$t" "$@"
+    return
+  fi
+  "$@" &
+  pid=$!
+  while kill -0 "$pid" 2>/dev/null; do
+    if [ "$i" -ge "$t" ]; then
+      kill "$pid" 2>/dev/null
+      wait "$pid" 2>/dev/null
+      return 124
+    fi
+    sleep 1
+    i=$((i + 1))
+  done
+  wait "$pid"
+}
+
+notify() {
+  osascript -e 'display notification "Approve the gcloud login in the browser" with title "gcloud session expired"' >/dev/null 2>&1 &
+}
+
+lock_age() {
+  local m
+  m=$(stat -f %m "$LOCK" 2>/dev/null) || { echo 0; return; }
+  echo $(( $(date +%s) - m ))
+}
+
+start=$(date +%s)
+if mkdir "$LOCK" 2>/dev/null; then
+  trap 'rmdir "$LOCK" 2>/dev/null; rm -f "$ERRFILE"' EXIT
+  msg "Google Cloud session expired. A browser login was opened; waiting up to ${WAIT_MAX}s for you to approve it. This command re-runs by itself afterwards. If this process is killed before that, run the same command again."
+  notify
+  account=$("$REAL" config get-value account 2>/dev/null)
+  if run_timeout "$WAIT_MAX" "$REAL" auth login --update-adc --quiet ${account:+"$account"} </dev/null >/dev/null; then
+    date +%s >"$DONE" 2>/dev/null
+  else
+    msg "browser login did not complete"
+  fi
+  rmdir "$LOCK" 2>/dev/null
+else
+  msg "Google Cloud session expired; another gcloud call already opened the browser login. Waiting up to ${WAIT_MAX}s for it. This command re-runs by itself afterwards."
+  waited=0
+  while [ -d "$LOCK" ]; do
+    if [ "$(lock_age)" -gt $((WAIT_MAX + 60)) ]; then
+      rmdir "$LOCK" 2>/dev/null
+      break
+    fi
+    [ "$waited" -ge "$WAIT_MAX" ] && break
+    sleep 1
+    waited=$((waited + 1))
+  done
+fi
+
+last=$(cat "$DONE" 2>/dev/null || echo 0)
+if [ "$last" -ge $((start - 5)) ]; then
+  rm -f "$ERRFILE"
+  trap - EXIT
+  exec "$REAL" "$@"
+fi
+
+msg "login did not complete; the error above stands. Run 'gcloud auth login', then run the same command again."
+exit "$rc"
