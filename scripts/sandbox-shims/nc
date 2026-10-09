@@ -1,0 +1,17 @@
+#!/bin/bash
+# Claude Code's macOS sandbox runs git's ssh through `nc -X 5 -x localhost:<port> <host> <port>`,
+# a SOCKS5 call that carries no proxy credentials, which its proxy rejects. When <port> is the
+# $HTTPS_PROXY port, that call goes through the same proxy as HTTP CONNECT with the credentials
+# from $HTTPS_PROXY. Every other call runs the system nc unchanged.
+
+if [[ $# -eq 6 && "$1" == -X && "$2" == 5 && "$3" == -x && "$4" =~ ^localhost:([0-9]+)$ ]]; then
+  port=${BASH_REMATCH[1]}
+  proxy=${HTTPS_PROXY#*://}
+  proxy=${proxy%/}
+  if [[ "$proxy" == *@localhost:"$port" || "$proxy" == *@127.0.0.1:"$port" ]] && command -v ncat >/dev/null; then
+    # the proxy listens on IPv4 loopback only
+    exec ncat --proxy "127.0.0.1:${port}" --proxy-type http --proxy-auth "${proxy%@*}" "$5" "$6"
+  fi
+fi
+
+exec /usr/bin/nc "$@"

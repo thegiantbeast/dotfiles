@@ -22,6 +22,10 @@ fi
 if [ -f '/opt/homebrew/share/google-cloud-sdk/path.bash.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/path.bash.inc'; fi
 # ~/.dotfiles/scripts/gcloud-shim/gcloud must shadow the SDK binary (re-login on session expiry).
 PATH="$HOME/.dotfiles/scripts/gcloud-shim:$(printf '%s' "$PATH" | tr ':' '\n' | grep -vxF "$HOME/.dotfiles/scripts/gcloud-shim" | paste -sd: -)"; export PATH
+# Inside the Claude Code sandbox, scripts/sandbox-shims/nc gives git's ssh the proxy credentials it lacks.
+case "$GIT_SSH_COMMAND" in
+  *"nc -X 5 -x localhost:"*) PATH="$HOME/.dotfiles/scripts/sandbox-shims:$PATH"; export PATH ;;
+esac
 
 # Make non-interactive bash subshells (e.g. `bash -c '...'` from agents)
 # also load this file so they inherit Homebrew/fnm/etc.

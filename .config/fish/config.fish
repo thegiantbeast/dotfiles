@@ -24,3 +24,7 @@ source ~/.orbstack/shell/init2.fish 2>/dev/null || :
 if [ -f '/opt/homebrew/share/google-cloud-sdk/path.fish.inc' ]; . '/opt/homebrew/share/google-cloud-sdk/path.fish.inc'; end
 # scripts/gcloud-shim/gcloud must shadow the SDK binary (re-login on session expiry).
 fish_add_path --global --move --prepend ~/.dotfiles/scripts/gcloud-shim
+# Inside the Claude Code sandbox, scripts/sandbox-shims/nc gives git's ssh the proxy credentials it lacks.
+if string match -q -- '*nc -X 5 -x localhost:*' "$GIT_SSH_COMMAND"
+    fish_add_path --global --move --prepend ~/.dotfiles/scripts/sandbox-shims
+end
