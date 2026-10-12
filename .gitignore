@@ -11,3 +11,5 @@
 .config/icm/memories.db
 .config/icm/memories.db-wal
 .config/icm/memories.db-shm
+
+__pycache__/
