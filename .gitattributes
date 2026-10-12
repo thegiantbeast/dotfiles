@@ -5,8 +5,7 @@
 .claude/RTK.md filter=git-crypt diff=git-crypt
 .claude/settings.json filter=git-crypt diff=git-crypt
 .claude/research/** filter=git-crypt diff=git-crypt
-.claude/hooks/*.sh filter=git-crypt diff=git-crypt
-.claude/hooks/*.py filter=git-crypt diff=git-crypt
+.claude/hooks/** filter=git-crypt diff=git-crypt
 .claude/output-styles/personal/** filter=git-crypt diff=git-crypt
 .claude/skills/SOURCES.md filter=git-crypt diff=git-crypt
 .claude/skills/personal/** filter=git-crypt diff=git-crypt
