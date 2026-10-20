@@ -85,8 +85,11 @@ if command -v rtk &>/dev/null; then
   # RTK on macOS reads from ~/Library/Application Support/rtk/ — symlink to ~/.config/rtk/
   mkdir -p "${HOME}/Library/Application Support/rtk"
   ln -sf "${HOME}/.config/rtk/config.toml" "${HOME}/Library/Application Support/rtk/config.toml"
+  ln -sf "${HOME}/.config/rtk/filters.toml" "${HOME}/Library/Application Support/rtk/filters.toml"
   rtk init --global --auto-patch
   rtk init --global --codex
+  # User filters load only once trusted; the trust is pinned to the file's hash
+  rtk trust --yes || echo "    ! rtk trust failed; custom filters stay disabled until 'rtk trust' runs."
 else
   echo "    ! rtk not found; skipping RTK init."
 fi
