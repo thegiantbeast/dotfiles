@@ -91,6 +91,11 @@ else
   echo "    ! rtk not found; skipping RTK init."
 fi
 
+echo "--> Linking k9s config"
+# k9s on macOS reads from ~/Library/Application Support/k9s/ — symlink to ~/.config/k9s/
+mkdir -p "${HOME}/Library/Application Support/k9s"
+ln -sf "${HOME}/.config/k9s/config.yaml" "${HOME}/Library/Application Support/k9s/config.yaml"
+
 echo "--> Restoring ICM memory database from the icm-backup branch"
 # Runs before `icm init` so the restore lands on an absent target rather than
 # an empty database that icm would have just created.
