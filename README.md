@@ -85,7 +85,7 @@ Notes
 
 `main` is the macOS source of truth (Strap + Stow, unchanged). Each other
 machine gets its own branch named after it (e.g. `devbox` for the Proxmox
-dev VM, user `deva`), pushed to origin:
+dev VM, user `ricardo`), pushed to origin:
 
     git clone ssh://git@github.com/thegiantbeast/dotfiles.git ~/.dotfiles
     cd ~/.dotfiles && git checkout -b devbox origin/devbox   # or create it
