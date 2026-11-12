@@ -17,9 +17,10 @@ PATH="$HOME/.dotfiles/scripts/gcloud-shim:$(printf '%s' "$PATH" | tr ':' '\n' | 
 # Prefer a forwarded agent (YubiKey card keys) when present; otherwise the
 # persistent user agent, which holds the AI-agent key.
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
-if [ -z "$SSH_AUTH_SOCK" ]; then
-  export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent"
-fi
+case "$SSH_AUTH_SOCK" in
+  /tmp/ssh-*/agent.*) ;;  # forwarded agent (YubiKey) — keep it
+  *) export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent" ;;  # local agent with the AI-agent key
+esac
 if [ -S "$SSH_AUTH_SOCK" ] && ! ssh-add -l >/dev/null 2>&1; then
   ssh-add "$HOME/.ssh/id_ed25519_ai_agent" >/dev/null 2>&1 || :
 fi
