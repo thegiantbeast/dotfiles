@@ -1,49 +1,34 @@
-# === Homebrew ===
-eval "$(/opt/homebrew/bin/brew shellenv)"
-export HOMEBREW_BUNDLE_NO_LOCK=true
-export PATH="/opt/homebrew/opt/grep/libexec/gnubin:$PATH"
-
 # === Editor ===
 export EDITOR=vi
+
+# === PATH: user installs (rex, uv tools) ===
+export PATH="$HOME/.local/bin:$PATH"
 
 # === Terraform ===
 # One shared provider cache; per-project .terraform dirs hard-link into it.
 export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
 [ -d "$TF_PLUGIN_CACHE_DIR" ] || mkdir -p "$TF_PLUGIN_CACHE_DIR"
 
-# === Node (fnm) ===
-# Only init if not already set up by a parent shell — avoids piling up
-# orphaned symlinks in ~/.local/state/fnm_multishells/ for every subshell.
-if [ -z "$FNM_MULTISHELL_PATH" ] || [ ! -d "$FNM_MULTISHELL_PATH" ]; then
-  eval "$(/opt/homebrew/bin/fnm env --use-on-cd --shell bash)"
+# === gcloud shim (re-login on session expiry); real SDK is the apt one ===
+export GCLOUD_SHIM_REAL="${GCLOUD_SHIM_REAL:-/usr/bin/gcloud}"
+PATH="$HOME/.dotfiles/scripts/gcloud-shim:$(printf '%s' "$PATH" | tr ':' '\n' | grep -vxF "$HOME/.dotfiles/scripts/gcloud-shim" | paste -sd: -)"; export PATH
+
+# === SSH agent ===
+# Prefer a forwarded agent (YubiKey card keys) when present; otherwise the
+# persistent user agent, which holds the AI-agent key.
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+if [ -z "$SSH_AUTH_SOCK" ]; then
+  export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent"
+fi
+if [ -S "$SSH_AUTH_SOCK" ] && ! ssh-add -l >/dev/null 2>&1; then
+  ssh-add "$HOME/.ssh/id_ed25519_ai_agent" >/dev/null 2>&1 || :
 fi
 
-# === Google Cloud SDK (PATH only — completion is interactive) ===
-if [ -f '/opt/homebrew/share/google-cloud-sdk/path.bash.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/path.bash.inc'; fi
-# ~/.dotfiles/scripts/gcloud-shim/gcloud must shadow the SDK binary (re-login on session expiry).
-PATH="$HOME/.dotfiles/scripts/gcloud-shim:$(printf '%s' "$PATH" | tr ':' '\n' | grep -vxF "$HOME/.dotfiles/scripts/gcloud-shim" | paste -sd: -)"; export PATH
-# Inside the Claude Code sandbox, scripts/sandbox-shims/nc gives git's ssh the proxy credentials it lacks.
-case "$GIT_SSH_COMMAND" in
-  *"nc -X 5 -x localhost:"*) PATH="$HOME/.dotfiles/scripts/sandbox-shims:$PATH"; export PATH ;;
-esac
-
 # Make non-interactive bash subshells (e.g. `bash -c '...'` from agents)
-# also load this file so they inherit Homebrew/fnm/etc.
+# also load this file so they inherit PATH/env.
 export BASH_ENV="$HOME/.bashrc"
 
 # Stop here for non-interactive shells — everything below is for humans.
 case $- in *i*) ;; *) return 0 ;; esac
 
-# === GPG / SSH ===
-export GPG_TTY=$(tty)
-export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
-gpgconf --launch gpg-agent
-
-# === Google Cloud SDK completion ===
-if [ -f '/opt/homebrew/share/google-cloud-sdk/completion.bash.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/completion.bash.inc'; fi
-
-# === OrbStack ===
-source ~/.orbstack/shell/init.bash 2>/dev/null || :
-
-
-. "$HOME/.local/bin/env"
+. "$HOME/.local/bin/env" 2>/dev/null || :
