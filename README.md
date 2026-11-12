@@ -80,3 +80,18 @@ Notes
 - `~/.dotfiles` must not exist; `setup.sh` exits early if it does.
 - GNU Stow is included in the `Brewfile` and will be installed by Strap.
 - Place your actual dotfiles/dirs at the repo root. Stow will symlink them into `$HOME`.
+
+## Multiple machines (branch convention)
+
+`main` is the macOS source of truth (Strap + Stow, unchanged). Each other
+machine gets its own branch named after it (e.g. `devbox` for the Proxmox
+dev VM, user `deva`), pushed to origin:
+
+    git clone ssh://git@github.com/thegiantbeast/dotfiles.git ~/.dotfiles
+    cd ~/.dotfiles && git checkout -b devbox origin/devbox   # or create it
+    # adapt machine-specific bits (shell rc paths, ~/.ssh/config — note .ssh
+    # and .claude are git-crypt locked and must be handled by hand), stow the
+    # portable packages, commit on the machine branch
+
+Never merge machine branches back into `main`; cherry-pick shared fixes if
+needed. The repo stays git-crypt locked — only plaintext files are stowed.
