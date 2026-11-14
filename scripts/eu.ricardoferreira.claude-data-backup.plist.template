@@ -9,12 +9,12 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>eu.ricardoferreira.icm-db-backup</string>
+    <string>eu.ricardoferreira.claude-data-backup</string>
 
     <key>ProgramArguments</key>
     <array>
         <string>/opt/homebrew/bin/bash</string>
-        <string>__HOME__/.dotfiles/scripts/icm-db-backup.sh</string>
+        <string>__HOME__/.dotfiles/scripts/claude-data-backup.sh</string>
     </array>
 
     <key>EnvironmentVariables</key>
@@ -32,7 +32,7 @@
     </dict>
 
     <key>StandardErrorPath</key>
-    <string>__HOME__/Library/Logs/icm-db-backup.err.log</string>
+    <string>__HOME__/Library/Logs/claude-data-backup.err.log</string>
 
     <key>ProcessType</key>
     <string>Background</string>

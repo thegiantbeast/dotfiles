@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Snapshots the ICM memory database to the icm-backup branch, encrypted.
 #
-# Runs unattended from ~/Library/LaunchAgents/eu.ricardoferreira.icm-db-backup.plist.
+# Runs unattended as part of scripts/claude-data-backup.sh.
 # The snapshot is gpg-encrypted before git sees it, so the blob is ciphertext
 # regardless of branch or .gitattributes state.
 set -euo pipefail

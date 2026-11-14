@@ -115,9 +115,9 @@ else
   echo "    ! icm not found; skipping ICM init."
 fi
 
-echo "--> Installing the launch agents (ICM backup, ICM report, Claude sessions backup; all catch up after sleep)"
+echo "--> Installing the launch agents (daily Claude data backup, weekly ICM report; both catch up after sleep)"
 mkdir -p "${HOME}/Library/LaunchAgents" "${HOME}/Library/Logs"
-for ICM_AGENT in eu.ricardoferreira.icm-db-backup dev.icm.maintenance eu.ricardoferreira.claude-sessions-backup; do
+for ICM_AGENT in eu.ricardoferreira.claude-data-backup dev.icm.maintenance; do
   sed "s|__HOME__|${HOME}|g" \
     "${DOTFILES_DIR}/scripts/${ICM_AGENT}.plist.template" \
     >"${HOME}/Library/LaunchAgents/${ICM_AGENT}.plist"

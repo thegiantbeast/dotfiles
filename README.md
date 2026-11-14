@@ -39,7 +39,10 @@ Scripts
 
 - `.macos`: Minimal, safe defaults (Finder, Dock, keyboard, trackpad, screenshots, no deprecated keys).
 - `scripts/strap-after-setup.sh`: Runs `.macos`, stows configs, git ssh keys setup, ICM restore, backup and weekly report agents.
+- `scripts/claude-data-backup.sh`: The daily backup job. Runs each backup below in turn; one that fails does not stop the next. `--no-push` is passed on to each.
 - `scripts/icm-db-backup.sh`: Snapshots the ICM memory database to the `icm-backup` branch. `--no-push` commits locally only.
+- `scripts/claude-sessions-backup.sh`: Mirrors the Claude Code transcripts and file-history to the `claude-sessions` branch, encrypted.
+- `scripts/claude-sessions-restore.sh`: Restores another machine's sessions. `--list` shows the machines, `--from <machine>` picks one, `--map OLD=NEW` maps its paths onto this machine's.
 - `scripts/icm-db-restore.sh`: Restores that snapshot. `--list` shows available ones, `--commit <sha>` picks an older one, `--force` replaces an existing database.
 - `scripts/gcloud-shim/gcloud`: Shadows the SDK `gcloud` on `PATH`. When a non-interactive call (agents, `gke-gcloud-auth-plugin`, terraform) fails on an expired Google Cloud session, it opens the browser login once, waits for the approval, and re-runs the command. `GCLOUD_SHIM_DISABLE=1` bypasses it.
 
@@ -66,13 +69,24 @@ How a snapshot is made:
 - The commit is built with plumbing against a scratch index, so the working tree, the checked-out branch and `main`'s index are never touched.
 - Only the newest 20 snapshots are kept. Pruning rewrites the branch, so the push is a `--force-with-lease` — on `icm-backup` only, never `main`.
 
-Schedule: `~/Library/LaunchAgents/eu.ricardoferreira.icm-db-backup.plist`, daily at 13:00. It uses `StartCalendarInterval` rather than `StartInterval` so a slot missed while the laptop is asleep or off fires once on wake, instead of the countdown restarting on every load and starving across reboots. Log: `~/Library/Logs/icm-db-backup.log`.
+Schedule: `scripts/claude-data-backup.sh`, run by `~/Library/LaunchAgents/eu.ricardoferreira.claude-data-backup.plist` daily at 13:00. It uses `StartCalendarInterval` rather than `StartInterval` so a slot missed while the laptop is asleep or off fires once on wake, instead of the countdown restarting on every load and starving across reboots. Log: `~/Library/Logs/icm-db-backup.log`.
 
 A backup runs without the YubiKey: encrypting needs only the public key, the ciphertext check reads packets without decrypting, and the push goes over HTTPS with the `gh` credential helper. Restoring needs the YubiKey, because the encryption subkey is a card stub.
 
 Weekly report: `~/Library/LaunchAgents/dev.icm.maintenance.plist` runs `.config/icm/maintenance.sh` on Mondays at 09:00. It appends `icm health`, a prune dry-run and the topics due for consolidation to `~/Library/Logs/icm-maintenance.log`, and never changes the database.
 
 Restore on a fresh machine happens automatically during post-strap. To do it by hand: `scripts/icm-db-restore.sh --list`, then `scripts/icm-db-restore.sh [--commit <sha>]`.
+
+Claude Code Session Backups
+---------------------------
+
+The same daily job mirrors `~/.claude/projects` and `~/.claude/file-history` to the `claude-sessions` branch. Each machine owns one folder there and replaces it whole on every run.
+
+- Every file is gzipped and encrypted with the machine's data key before git sees it, and its name on the branch is a hash of its path. The index that maps names back to paths is encrypted the same way. The script refuses to commit anything that is not ciphertext.
+- The data key stays in `.git/claude-sessions.key` and is never pushed; the branch holds it encrypted to the YubiKey's key. A backup needs no YubiKey; a restore needs it once, to decrypt that key.
+- Only files that changed since the last run are encrypted again. Only the newest 3 commits are kept. Log: `~/Library/Logs/claude-sessions-backup.log`.
+
+Restore on another machine: `scripts/claude-sessions-restore.sh --list`, then `scripts/claude-sessions-restore.sh --from <machine> --map <their path>=<this path>`. The map renames the project folders that `claude --resume` looks up and rewrites the paths inside the transcripts.
 
 Notes
 -----

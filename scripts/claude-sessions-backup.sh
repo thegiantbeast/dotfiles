@@ -4,7 +4,7 @@
 #
 #   claude-sessions-backup.sh [--no-push]
 #
-# Runs unattended from ~/Library/LaunchAgents/eu.ricardoferreira.claude-sessions-backup.plist.
+# Runs unattended as part of scripts/claude-data-backup.sh.
 # Each machine owns one folder on the branch, named in .git/claude-sessions.machine,
 # and replaces it whole on every run; other machines' folders are carried over.
 #
