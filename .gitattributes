@@ -9,3 +9,6 @@
 .claude/output-styles/personal/** filter=git-crypt diff=git-crypt
 .claude/skills/SOURCES.md filter=git-crypt diff=git-crypt
 .claude/skills/personal/** filter=git-crypt diff=git-crypt
+.claude/rules/** filter=git-crypt diff=git-crypt
+.claude/skills/usage-meter/** filter=git-crypt diff=git-crypt
+.claude/skills/context7-mcp/** filter=git-crypt diff=git-crypt

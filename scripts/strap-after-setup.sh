@@ -115,9 +115,9 @@ else
   echo "    ! icm not found; skipping ICM init."
 fi
 
-echo "--> Installing the ICM launch agents (daily backup, weekly report; both catch up after sleep)"
+echo "--> Installing the launch agents (ICM backup, ICM report, Claude sessions backup; all catch up after sleep)"
 mkdir -p "${HOME}/Library/LaunchAgents" "${HOME}/Library/Logs"
-for ICM_AGENT in eu.ricardoferreira.icm-db-backup dev.icm.maintenance; do
+for ICM_AGENT in eu.ricardoferreira.icm-db-backup dev.icm.maintenance eu.ricardoferreira.claude-sessions-backup; do
   sed "s|__HOME__|${HOME}|g" \
     "${DOTFILES_DIR}/scripts/${ICM_AGENT}.plist.template" \
     >"${HOME}/Library/LaunchAgents/${ICM_AGENT}.plist"
@@ -125,6 +125,9 @@ for ICM_AGENT in eu.ricardoferreira.icm-db-backup dev.icm.maintenance; do
   launchctl bootstrap "gui/$(id -u)" "${HOME}/Library/LaunchAgents/${ICM_AGENT}.plist"
   launchctl enable "gui/$(id -u)/${ICM_AGENT}"
 done
+
+echo "--> Claude Code sessions of other machines: scripts/claude-sessions-restore.sh --list"
+echo "    then: scripts/claude-sessions-restore.sh --from <machine> --map <their path>=<this path>"
 
 echo "--> Installing Glance (Quick Look extension)"
 GLANCE_DMG_URL=$(curl -sL https://api.github.com/repos/chamburr/glance/releases/latest | jq -r '.assets[] | select(.name | endswith(".dmg")) | .browser_download_url')
