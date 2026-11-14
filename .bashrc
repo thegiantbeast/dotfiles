@@ -29,11 +29,19 @@ fi
 # also load this file so they inherit PATH/env.
 export BASH_ENV="$HOME/.bashrc"
 
-# === Mistral API key (claude-code-router $MISTRAL_API_KEY + Vibe's Mistral provider) ===
-# Key file is per-account, 600, never committed. Single line, no quotes.
-if [ -f "$HOME/.config/mistral/api-key" ] && [ -s "$HOME/.config/mistral/api-key" ]; then
-  export MISTRAL_API_KEY="$(tr -d '\r\n' < "$HOME/.config/mistral/api-key")"
-fi
+# === Mistral API key — ccr ONLY ===
+# The key file (~/.config/mistral/api-key, 600, never committed) is loaded
+# per-invocation by this wrapper, never exported globally: a global
+# MISTRAL_API_KEY silently overrides Vibe's subscription key from the OS
+# keyring and switches Vibe to metered La Plateforme API billing.
+ccr() {
+  if [ -f "$HOME/.config/mistral/api-key" ] && [ -s "$HOME/.config/mistral/api-key" ]; then
+    MISTRAL_API_KEY="$(tr -d '\r\n' < "$HOME/.config/mistral/api-key")" command ccr "$@"
+  else
+    echo "ccr: no Mistral key at ~/.config/mistral/api-key (see ~/.config/mistral/README.txt)" >&2
+    return 1
+  fi
+}
 
 # Stop here for non-interactive shells — everything below is for humans.
 case $- in *i*) ;; *) return 0 ;; esac
