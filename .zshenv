@@ -43,6 +43,14 @@ ccr() {
   fi
 }
 
+# Local homelab route (no API key needed): ccr root config has a "homelab"
+# provider -> http://10.10.10.11:8080 (VM 111 llama-router). claude 2.1.289
+# needs the modelOverrides mapping in ~/.claude/settings.json to accept the
+# "homelab,<model>" id. See homelab repo tools/devbox/README.md.
+ccr-local() {
+  command ccr code --model homelab,gemma-4-12B-it-QAT-Q4_0 "$@"
+}
+
 # Stop here for non-interactive shells — everything below is for humans.
 [[ -o interactive ]] || return 0
 
