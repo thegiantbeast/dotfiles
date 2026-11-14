@@ -29,6 +29,12 @@ fi
 # load ~/.bashrc so they inherit PATH/env.
 export BASH_ENV="$HOME/.bashrc"
 
+# === Mistral API key (claude-code-router $MISTRAL_API_KEY + Vibe's Mistral provider) ===
+# Key file is per-account, 600, never committed. Single line, no quotes.
+if [ -f "$HOME/.config/mistral/api-key" ] && [ -s "$HOME/.config/mistral/api-key" ]; then
+  export MISTRAL_API_KEY="$(tr -d '\r\n' < "$HOME/.config/mistral/api-key")"
+fi
+
 # Stop here for non-interactive shells — everything below is for humans.
 [[ -o interactive ]] || return 0
 
